@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		GitOnDemand
-// @version		1.0
+// @version		1.1
 // @description Displays TargetProcess infos in the pullrequests.
 // @match		https://github.com/*/*/pull*
 // @require		http://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js
@@ -11,6 +11,9 @@
 // --- Configuration, edit here ---
 // Your targetprocess url
 BASE_URL = 'https://FOOBAR.tpondemand.com';
+
+// The prefix for your ids (For example, ID: will match ID:1733 and get story 1733)
+ID_PREFIX = 'ID:';
 
 // --- Do not edit below ---
 
