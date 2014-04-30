@@ -1,29 +1,24 @@
-// ==UserScript==
-// @name		GitOnDemand
-// @version		1.2
-// @description Displays TargetProcess infos in the pullrequests.
-// @match		https://github.com/*/*/pull*
-// @require		http://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js
-// @copyright	2012-2013, Tristan Foureur / 2014+, Damien Weber
-// @website		https://github.com/d-weber/GithubProcess
-// ==/UserScript==
+// GITHUB    : https://github.com/d-weber/GithubProcess
+// COPYRIGHT : Tristan Foureur, Damien Weber
 
-// --- Configuration, edit here ---
+//--- CONFIGURATION, EDIT THIS  ---//
+
 // Your targetprocess url
-BASE_URL = 'https://myaccount.tpondemand.com';
+BASE_URL = 'https://myaccount.tpondemand.com/';
 
 // The prefix for your ids (For example, ID: will match ID:1733 and get story 1733)
 ID_PREFIX = 'ID:';
-// --- Do not edit below ---
+
+//--- DO NOT EDIT BELOW THIS LINE ---//
 
 /**
  * Strip the HTML tags
  * @param  {string} input   The input text
- * @param  {mixed} allowed The allowed tags
+ * @param  {mixed}  allowed The allowed tags
  * @return {string}         The tag-stripped text
  */
 function strip_tags (input, allowed) {
-	if(input === null || input === "") return "";
+    if(input === null || input === "") return "";
     allowed = (((allowed || "") + "").toLowerCase().match(/<[a-z][a-z0-9]*>/g) || []).join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
     var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
         commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
@@ -35,24 +30,24 @@ function strip_tags (input, allowed) {
 /**
  * Count the number of testcases
  * @param  {array} Testcases The testcases, given by TP's api
- * @return {int}           The number of successful testcases
+ * @return {int}             The number of successful testcases
  */
 function countOk(Testcases) {
-	Ok = 0;
-	for (var i = Testcases.length - 1; i >= 0; i--) {
-		if(Testcases[i].LastStatus === true) {
-			Ok++;
-		}
-	}
+    Ok = 0;
+    for (var i = Testcases.length - 1; i >= 0; i--) {
+        if(Testcases[i].LastStatus === true) {
+            Ok++;
+        }
+    }
 
-	return Ok;
+    return Ok;
 }
 
 /**
  * Displays the info for a Bug/Story
- * @param  {int} id    Id of that bug/story
- * @param  {object} infos Contains the informations such as description, title, etc
- * @param  {string} type  Either 'Bugs' or 'UserStories'
+ * @param  {int}    id      Id of that bug/story
+ * @param  {object} infos   Contains the informations such as description, title, etc
+ * @param  {string} type    Either 'Bugs' or 'UserStories'
  * @return {void}
  */
 function showInfos(id,infos,type) {
@@ -86,11 +81,11 @@ function showInfos(id,infos,type) {
         'Status : <span style="'+style_status+'">'+infos.EntityState.Name+"</span><br />" +
         '<span style="'+style_spent+'">Spent time : '+infos.TimeSpent+'h </span>/<span style="'+style_remain+'"> Remaining : '+infos.TimeRemain+"h </span><br />";
 
-    if(type == 'UserStories') {
+    if (type == 'UserStories') {
         ok = countOk(infos.TestCases.Items);
         total = infos.TestCases.Items.length;
 
-        if(ok == total) style_tests = 'font-weight: bold; color: green;';
+        if (ok == total) style_tests = 'font-weight: bold; color: green;';
         else style_tests = 'font-weight: bold;';
 
         if(total > 0) {
@@ -111,8 +106,8 @@ function showInfos(id,infos,type) {
 
 /**
  * Tries to fetch the object on TP's api
- * @param  {int} id   Id of the object to fetch
- * @param  {string} type 'Bugs' or 'UserStories'
+ * @param  {int}    id      Id of the object to fetch
+ * @param  {string} type    'Bugs' or 'UserStories'
  * @return {void}
  * @todo Do a single request for Bugs
  */
