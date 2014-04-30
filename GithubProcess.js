@@ -1,20 +1,19 @@
 // ==UserScript==
 // @name		GitOnDemand
-// @version		1.1
+// @version		1.2
 // @description Displays TargetProcess infos in the pullrequests.
 // @match		https://github.com/*/*/pull*
 // @require		http://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js
-// @copyright	2012+, Tristan Foureur
-// @website		https://github.com/Esya/GithubProcess
+// @copyright	2012-2013, Tristan Foureur / 2014+, Damien Weber
+// @website		https://github.com/d-weber/GithubProcess
 // ==/UserScript==
 
 // --- Configuration, edit here ---
 // Your targetprocess url
-BASE_URL = 'https://FOOBAR.tpondemand.com';
+BASE_URL = 'https://myaccount.tpondemand.com';
 
 // The prefix for your ids (For example, ID: will match ID:1733 and get story 1733)
 ID_PREFIX = 'ID:';
-
 // --- Do not edit below ---
 
 /**
@@ -58,62 +57,56 @@ function countOk(Testcases) {
  */
 function showInfos(id,infos,type) {
 
-	if(type == 'Bugs') {
-		imgSrc = BASE_URL+'/img/Bug.gif';
-		link = BASE_URL+'/restui/tpview.aspx#bug/'+id;
-	} else {
-		imgSrc = BASE_URL+'/img/UserStory.gif';
-		link = BASE_URL+'/restui/tpview.aspx#userstory/'+id;
-	}
+    link = BASE_URL + 'entity/' + id;
 
-	switch(infos.EntityState.Name) {
-		case 'Refused':
-		style_status = 'font-weight: bold; color: red';
-		break;
+    switch(infos.EntityState.Name) {
+        case 'Refused':
+            style_status = 'font-weight: bold; color: red';
+            break;
 
-		case 'Accepted':
-		style_status = 'font-weight: bold; color: green;';
-		break;
+        case 'Accepted':
+            style_status = 'font-weight: bold; color: green;';
+            break;
 
-		default:
-		style_status = 'font-weight: bold;';
-		break;
-	}
+        default:
+            style_status = 'font-weight: bold;';
+            break;
+    }
 
-	if(infos.Timespent === 0) style_spent = 'font-weight: bold; color: red;';
-	else style_spent = '';
+    if(infos.Timespent === 0) style_spent = 'font-weight: bold; color: red;';
+    else style_spent = '';
 
-	if(infos.TimeRemain !== 0) style_remain = 'font-weight: bold; color: red;';
-	else style_remain = '';
+    if(infos.TimeRemain !== 0) style_remain = 'font-weight: bold; color: red;';
+    else style_remain = '';
 
-	base = '<img style="display: none;" src="http://www.gencodegenes.org/gencode/gfx/toggle.png" class="toggle-desc-'+id+'" data-id="'+id+'"/>'+
-	"<img src=\""+imgSrc+"\" />&nbsp;<a href=\""+link+"\">ID:"+id+"</a><br />" +
-	'<span class="target-desc-'+id+'" style="display: none">'+strip_tags(infos.Description,"")+'<br /></span>'+
-	"Title : "+infos.Name+" <br />" +
-	'Status : <span style="'+style_status+'">'+infos.EntityState.Name+"</span><br />" +
-	'<span style="'+style_spent+'">Spent time : '+infos.TimeSpent+'h </span>/<span style="'+style_remain+'"> Remaining : '+infos.TimeRemain+"h </span><br />";
+    base = '<img style="display: none;" src="http://www.gencodegenes.org/gencode/gfx/toggle.png" class="toggle-desc-'+id+'" data-id="'+id+'"/>'+
+        "<img src=\""+imgSrc+"\" />&nbsp;<a href=\""+link+"\" target=\"_blank\">ID:"+id+"</a><br />" +
+        '<span class="target-desc-'+id+'" style="display: none">'+strip_tags(infos.Description,"")+'<br /></span>'+
+        "Title : "+infos.Name+" <br />" +
+        'Status : <span style="'+style_status+'">'+infos.EntityState.Name+"</span><br />" +
+        '<span style="'+style_spent+'">Spent time : '+infos.TimeSpent+'h </span>/<span style="'+style_remain+'"> Remaining : '+infos.TimeRemain+"h </span><br />";
 
-	if(type == 'UserStories') {
-		ok = countOk(infos.TestCases.Items);
-		total = infos.TestCases.Items.length;
+    if(type == 'UserStories') {
+        ok = countOk(infos.TestCases.Items);
+        total = infos.TestCases.Items.length;
 
-		if(ok == total) style_tests = 'font-weight: bold; color: green;';
-		else style_tests = 'font-weight: bold;';
+        if(ok == total) style_tests = 'font-weight: bold; color: green;';
+        else style_tests = 'font-weight: bold;';
 
-		if(total > 0) {
-			base +='<span style="'+style_tests+'">Successful testcases : '+ok+"/"+total+"</span><br />";
-		} else {
-			base +='<span style="'+style_tests+'">No testcase!</span><br />';
-		}
-	}
+        if(total > 0) {
+            base +='<span style="'+style_tests+'">Successful testcases : '+ok+"/"+total+"</span><br />";
+        } else {
+            base +='<span style="'+style_tests+'">No testcase!</span><br />';
+        }
+    }
 
 
-	before = $('.starting-comment .comment-body').html();
-	after = before.replace('ID:'+id,base);
-	$('.starting-comment .comment-body').html(after);
-	$('.starting-comment .comment-body').find('.toggle-desc-'+id).click(function() {
-		$('target-desc-'+id).toggle();
-	});
+    before = $('.timeline-comment-wrapper:first-child .comment-body').html();
+    after = before.replace('ID:'+id,base);
+    $('.timeline-comment-wrapper:first-child .comment-body').html(after);
+    $('.timeline-comment-wrapper:first-child .comment-body').find('.toggle-desc-'+id).click(function() {
+        $('target-desc-'+id).toggle();
+    });
 }
 
 /**
@@ -124,28 +117,32 @@ function showInfos(id,infos,type) {
  * @todo Do a single request for Bugs
  */
 function getId(id,type) {
-	if(type == "Bugs") {
-		url = BASE_URL+"/api/v1/"+type+"/"+id+"?format=json&resultInclude=[Id,Description,EntityState,Name,TimeSpent,TimeRemain]";
-	} else {
-		url = BASE_URL+"/api/v1/"+type+"/"+id+"?format=json&resultInclude=[Id,Description,EntityState,Name,TimeSpent,TimeRemain,Testcases-count,Testcases[Name,LastStatus]]";
-	}
-	//Go for a story first.
-	GM_xmlhttpRequest({
-		method: "GET",
-		url: url,
-		onload: function(response) {
-			if(response.status == '404' && type != 'Bugs') {
-				getId(id,"Bugs");
-			} else {
-				json = JSON.parse(response.responseText);
-				showInfos(id,json,type);
-			}
-		}
-	});
+    if(type == "Bugs") {
+        url = BASE_URL+"/api/v1/"+type+"/"+id+"?format=json&resultInclude=[Id,Description,EntityState,Name,TimeSpent,TimeRemain]";
+    } else if(type == "Requests") {
+        url = BASE_URL+"/api/v1/"+type+"/"+id+"?format=json&resultInclude=[Id,Description,EntityState,Name,TimeSpent,TimeRemain]";
+    } else {
+        url = BASE_URL+"/api/v1/"+type+"/"+id+"?format=json&resultInclude=[Id,Description,EntityState,Name,TimeSpent,TimeRemain,Testcases-count,Testcases[Name,LastStatus]]";
+    }
+    //Go for a story first.
+    GM_xmlhttpRequest({
+        method: "GET",
+        url: url,
+        onload: function(response) {
+            if(response.status == '404' && type != 'Bugs') {
+                getId(id,"Bugs");
+            } else if(response.status == '404' && type =='Bugs') {
+                getId(id,'Requests');
+            } else {
+                json = JSON.parse(response.responseText);
+                showInfos(id,json,type);
+            }
+        }
+    });
 }
 
-ids = $('.starting-comment .comment-body').html().match(/ID:([0-9]*)/g);
+ids = $('.timeline-comment-wrapper:first-child .comment-body').html().match(/ID:([0-9]*)/g);
 
 for (var i = ids.length - 1; i >= 0; i--) {
-	getId(ids[i].substr(3),"UserStories");
+    getId(ids[i].substr(3),"UserStories");
 }
